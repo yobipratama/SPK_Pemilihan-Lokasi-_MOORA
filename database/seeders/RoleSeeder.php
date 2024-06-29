@@ -14,16 +14,12 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            [
-                'name' => 'mahasiswa'
-            ],
-            [
-                'name' => 'admin'
-            ]
+            ['name' => 'admin'],
+            ['name' => 'user'],
         ];
 
-        foreach ($roles as $key => $value) {
-            Role::create($value);
+        foreach ($roles as $role) {
+            Role::create($role);
         }
     }
 }
