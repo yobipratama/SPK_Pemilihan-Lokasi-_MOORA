@@ -26,7 +26,7 @@
     <div class="row">
         <div class="col-lg-4 col-sm-6">
             <div class="card">
-                <a href="{{ route('admin.alternatif.index') }}" class="stat-widget-two card-body rounded bg-primary">
+                <a href="{{ route('user.alternatif.index') }}" class="stat-widget-two card-body rounded bg-primary">
                     <div class="stat-content">
                         <div class="stat-digit text-white">{{ $alternatif }}</div>
                         <div class="stat-text text-white">Lokasi</div>
@@ -46,7 +46,7 @@
         </div>
         <div class="col-lg-4 col-sm-6">
             <div class="card">
-                <a href="{{ route('admin.penilaian.history') }}" class="stat-widget-two card-body rounded bg-success">
+                <a href="{{ route('user.penilaian.history') }}" class="stat-widget-two card-body rounded bg-success">
                     <div class="stat-content">
                         <div class="stat-digit text-white">{{ $penilaian }}</div>
                         <div class="stat-text text-white">Penilaian</div>
