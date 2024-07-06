@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -13,7 +13,7 @@ class ProfileController extends Controller
     public function index()
     {
         $user = Auth::user();
-        return view('admin.profile.index',[
+        return view('profile.index',[
             'user' => $user
         ]);
     }
@@ -21,7 +21,7 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
-        return view('admin.profile.edit',[
+        return view('profile.edit',[
             'user' => $user
         ]);
     }
@@ -38,13 +38,13 @@ class ProfileController extends Controller
         if ($validated) {
             $user = User::find(Auth::user()->id);
             $user->update($validated);
-            return to_route('admin.profile.index')->with('success','Profile berhasil diupdate');
+            return to_route('profile.index')->with('success','Profile berhasil diupdate');
         }
     }
 
     public function changePassword()
     {
-        return view('admin.profile.change-password');
+        return view('profile.change-password');
     }
 
     public function updatePassword(Request $request)
@@ -63,7 +63,7 @@ class ProfileController extends Controller
                         'password' => Hash::make($request->new_password)
                     ]);
 
-                    return to_route('admin.dashboard')->with('success','Password berhasil diubah');
+                    return to_route('dashboard')->with('success','Password berhasil diubah');
                 }
                 return back()->with('error','Password baru anda tidak cocok');
             }
