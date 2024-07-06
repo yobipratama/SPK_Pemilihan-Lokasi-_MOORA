@@ -14,10 +14,10 @@ class AlternatifSeeder extends Seeder
     public function run(): void
     {
         $data = [
-            ['code' => 'A1',  'alternatif' => 'Desa Tawangargo, Kec. Karang Ploso, Kabupaten Malang'],
-            ['code' => 'A2',  'alternatif' => 'Desa Giripurno, Kec. Bumiaji, Kota Batu'],
-            ['code' => 'A3',  'alternatif' => 'Desa Pendem, Kec. Junrejo, Kota Batu'],
-            ['code' => 'A4',  'alternatif' => 'Desa Bonowarih, Kec. Karang Ploso, Kabupaten Malang'],
+            ['code' => 'A1',  'alternatif' => 'Desa Girimoyo'],
+            ['code' => 'A2',  'alternatif' => 'Desa Donowarih'],
+            ['code' => 'A3',  'alternatif' => 'Desa Pendem'],
+            ['code' => 'A4',  'alternatif' => 'Desa Punten'],
         ];
         foreach ($data as $item) {
             Alternatif::create($item);
