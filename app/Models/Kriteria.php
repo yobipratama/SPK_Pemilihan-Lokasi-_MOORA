@@ -13,4 +13,8 @@ class Kriteria extends Model
     public function sub_kriteria(){
         return $this->hasMany(SubKriteria::class, 'kriterias_id');
     }
+
+    public function sub_penilaians(){
+        return $this->hasMany(SubPenilaian::class);
+    }
 }
