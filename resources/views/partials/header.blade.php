@@ -6,7 +6,7 @@ Header start
         <nav class="navbar navbar-expand">
             <div class="collapse navbar-collapse justify-content-between">
                 <div class="header-left">
-                 
+
                 </div>
 
                 <ul class="navbar-nav header-right">
@@ -15,7 +15,11 @@ Header start
                             <i class="mdi mdi-account"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right">
-                            <a href="{{ route('admin.change.password') }}" class="dropdown-item">
+                            <a href="{{ route('profile.index') }}" class="dropdown-item">
+                                <i class="icon-user"></i>
+                                <span class="ml-2">Profile </span>
+                            </a>
+                            <a href="{{ route('change.password') }}" class="dropdown-item">
                                 <i class="icon-envelope-open"></i>
                                 <span class="ml-2">Change Password </span>
                             </a>
