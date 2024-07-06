@@ -8,11 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class SubPenilaian extends Model
 {
     use HasFactory;
+    protected $table = 'sub_penilaians';
+    protected $guarded = ['id'];
 
-    protected $guarded  = ['id'];
-
-    public function KriPenilaian()
+    public function penilaian()
     {
-        return $this->hasMany(KriPenilaian::class, 'sub_penilaian_id');
+        return $this->belongsTo(Penilaian::class);
+    }
+
+    public function kri_penilaians()
+    {
+        return $this->hasMany(KriPenilaian::class);
     }
 }
