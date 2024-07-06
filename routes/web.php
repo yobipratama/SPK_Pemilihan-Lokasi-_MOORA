@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\Admin\AlternatifController;
+use App\Http\Controllers\User\AlternatifController;
 use App\Http\Controllers\Admin\KriteriaController;
 use App\Http\Controllers\Admin\MahasiswaController;
-use App\Http\Controllers\Admin\PenilaianController;
-use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\User\PenilaianController;
+use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Mahasiswa\AlternatifController as MahasiswaAlternatifController;
 use App\Http\Controllers\Mahasiswa\KriteriaController as MahasiswaKriteriaController;
@@ -37,33 +38,35 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::prefix('/profile')->group(function(){
+        Route::get('/', [ProfileController::class, 'index'])->name('profile.index');
+        Route::get('/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::post('/edit', [ProfileController::class, 'update'])->name('profile.update');
+        Route::get('/change-password', [ProfileController::class, 'changePassword'])->name('change.password');
+        Route::post('/change-password', [ProfileController::class, 'updatePassword'])->name('change.password');
+    });
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('/dashboard/admin')->group(function(){
         Route::get('/', function(){
             $alternatif = Alternatif::count();
             $kriteria = Kriteria::count();
             $penilaian = Penilaian::count();
-            
+
             return view('admin.index', [
                 'alternatif' => $alternatif,
                 'kriteria' => $kriteria,
                 'penilaian' => $penilaian,
             ]);
         })->name('admin.dashboard');
-        Route::prefix('/mahasiswa')->group(function(){
-            Route::get('/', [MahasiswaController::class, 'index'])->name('admin.mahasiswa.index');
-            Route::get('/add', [MahasiswaController::class, 'add'])->name('admin.mahasiswa.add');
-            Route::get('/edit/{id}', [MahasiswaController::class, 'edit'])->name('admin.mahasiswa.edit');
-            Route::post('/store', [MahasiswaController::class, 'store'])->name('admin.mahasiswa.store');
-            Route::post('/update', [MahasiswaController::class, 'update'])->name('admin.mahasiswa.update');
-            Route::get('/{id}', [MahasiswaController::class, 'destroy'])->name('admin.mahasiswa.destroy');
-        });
-        Route::prefix('/alternatif')->group(function(){
-            Route::get('/', [AlternatifController::class, 'index'])->name('admin.alternatif.index');
-            Route::get('/add', [AlternatifController::class, 'add'])->name('admin.alternatif.add');
-            Route::get('/edit/{id}', [AlternatifController::class, 'edit'])->name('admin.alternatif.edit');
-            Route::post('/store', [AlternatifController::class, 'store'])->name('admin.alternatif.store');
-            Route::post('/update', [AlternatifController::class, 'update'])->name('admin.alternatif.update');
-            Route::get('/{id}', [AlternatifController::class, 'destroy'])->name('admin.alternatif.destroy');
+        Route::prefix('/owner')->group(function(){
+            Route::get('/', [UserController::class, 'index'])->name('admin.owner.index');
+            Route::get('/add', [UserController::class, 'create'])->name('admin.owner.add');
+            Route::get('/edit/{id}', [UserController::class, 'edit'])->name('admin.owner.edit');
+            Route::post('/store', [UserController::class, 'store'])->name('admin.owner.store');
+            Route::post('/update', [UserController::class, 'update'])->name('admin.owner.update');
+            Route::get('/{id}', [UserController::class, 'destroy'])->name('admin.owner.destroy');
         });
         Route::prefix('/kriteria')->group(function(){
             Route::get('/', [KriteriaController::class, 'index'])->name('admin.kriteria.index');
@@ -74,19 +77,37 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/update', [KriteriaController::class, 'update'])->name('admin.kriteria.update');
             Route::get('/{id}', [KriteriaController::class, 'destroy'])->name('admin.kriteria.destroy');
         });
-        Route::prefix('/profile')->group(function(){
-            Route::get('/', [ProfileController::class, 'index'])->name('admin.profile.index');
-            Route::get('/edit', [ProfileController::class, 'edit'])->name('admin.profile.edit');
-            Route::post('/edit', [ProfileController::class, 'update'])->name('admin.profile.update');
-            Route::get('/change-password', [ProfileController::class, 'changePassword'])->name('admin.change.password');
-            Route::post('/change-password', [ProfileController::class, 'updatePassword'])->name('admin.change.password');
-        });
+
+    });
+});
+
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::prefix('/dashboard/user')->group(function(){
+        Route::get('/', function(){
+            $alternatif = Alternatif::count();
+            $kriteria = Kriteria::count();
+            $penilaian = Penilaian::count();
+
+            return view('user.index', [
+                'alternatif' => $alternatif,
+                'kriteria' => $kriteria,
+                'penilaian' => $penilaian,
+            ]);
+        })->name('user.dashboard');
         Route::prefix('/penilaian')->group(function(){
-            Route::get('/', [PenilaianController::class, 'index'])->name('admin.penilaian.index');
-            Route::get('/history', [PenilaianController::class, 'history'])->name('admin.penilaian.history');
-            Route::get('/history/{id}', [PenilaianController::class, 'detail_history'])->name('admin.penilaian.detail_history');
-            Route::post('/', [PenilaianController::class, 'store'])->name('admin.penilaian.store');
-            Route::get('/generate-pdf/{id}', [PenilaianController::class, 'generatePdf'])->name('admin.penilaian.pdf');
+            Route::get('/', [PenilaianController::class, 'index'])->name('user.penilaian.index');
+            Route::get('/history', [PenilaianController::class, 'history'])->name('user.penilaian.history');
+            Route::get('/history/{id}', [PenilaianController::class, 'detail_history'])->name('user.penilaian.detail_history');
+            Route::post('/', [PenilaianController::class, 'store'])->name('user.penilaian.store');
+            Route::get('/generate-pdf/{id}', [PenilaianController::class, 'generatePdf'])->name('user.penilaian.pdf');
+        });
+        Route::prefix('/alternatif')->group(function(){
+            Route::get('/', [AlternatifController::class, 'index'])->name('user.alternatif.index');
+            Route::get('/add', [AlternatifController::class, 'add'])->name('user.alternatif.add');
+            Route::get('/edit/{id}', [AlternatifController::class, 'edit'])->name('user.alternatif.edit');
+            Route::post('/store', [AlternatifController::class, 'store'])->name('user.alternatif.store');
+            Route::post('/update', [AlternatifController::class, 'update'])->name('user.alternatif.update');
+            Route::get('/{id}', [AlternatifController::class, 'destroy'])->name('user.alternatif.destroy');
         });
     });
 });
