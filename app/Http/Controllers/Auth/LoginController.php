@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Models\User;
+use App\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
@@ -15,18 +18,21 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'email' => 'email|required|exists:users,email',
             'password' => 'required|min:6'
         ]);
 
-        if ($validated) {
-            $attempt = Auth::attempt($validated);
-            if ($attempt) {
-                return to_route('admin.dashboard')->with('message','Login berhasil');
-            }
-            return back()->with('message','Email atau password salah');
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return back()->with('message', 'Email atau password salah');
         }
+
+        $user = Auth::user();
+        if ($user->role->name === 'admin') {
+            return to_route('admin.dashboard')->with('message', 'Login berhasil');
+        }
+
+        return to_route('user.dashboard')->with('message', 'Login berhasil');
     }
 
     public function logout()
