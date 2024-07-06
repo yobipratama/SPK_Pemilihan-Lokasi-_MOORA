@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SPK Roc Moora</title>
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('/images/favicon.png') }}">
@@ -63,6 +64,7 @@
     </div>
 
     <!-- Required vendors -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="{{ asset('/vendor/global/global.min.js') }}"></script>
     <script src="{{ asset('/js/quixnav-init.js') }}"></script>
     <script src="{{ asset('/js/custom.min.js') }}"></script>
