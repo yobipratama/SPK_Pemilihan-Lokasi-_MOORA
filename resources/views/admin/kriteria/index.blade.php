@@ -37,7 +37,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($kriterias as $index => $kriteria)                                    
+                                    @foreach ($kriterias as $index => $kriteria)
                                         <tr role="row">
                                             <td>{{ $index+1 }}</td>
                                             <td>{{ $kriteria->code }}</td>
@@ -50,10 +50,10 @@
                                             </td>
                                         </tr>
                                     @endforeach
-                                  
+
                                 </tbody>
                             </table>
-                          
+
                         </div>
                     </div>
                 </div>
@@ -64,7 +64,6 @@
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title">Sub kriteria</h4>
-                    <bbutton class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">Tambah Sub Kriteria</bbutton>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -78,7 +77,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($kriterias as $index => $item)                                    
+                                    @foreach ($kriterias as $index => $item)
                                         <tr role="row">
                                             <td rowspan="{{ count($item->sub_kriteria) + 1 }}">{{ $item->name }}</td>
                                         </tr>
