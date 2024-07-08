@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Kriteria extends Model
 {
     use HasFactory;
+    protected $table = 'kriterias';
 
     protected $guarded = ['id'];
     public function sub_kriteria(){

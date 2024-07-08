@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('sub_kriterias', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('kriterias_id');
-            $table->string('keterangan');
-            $table->integer('value');
+            $table->string('keterangan')->nullable();
+            $table->integer('value')->nullable();
             $table->foreign('kriterias_id')->references('id')->on('kriterias');
             $table->timestamps();
         });

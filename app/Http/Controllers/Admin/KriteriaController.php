@@ -22,7 +22,7 @@ class KriteriaController extends Controller
     public function edit($id)
     {
         try {
-            $kriteria = Kriteria::findOrFail($id);
+            $kriteria = Kriteria::with('sub_kriteria')->findOrFail($id);
             return view('admin.kriteria.edit', ['kriteria' => $kriteria]);
         } catch (\Throwable $th) {
             return back()->with('error', 'Oops, Something was wrong!');
@@ -30,14 +30,26 @@ class KriteriaController extends Controller
     }
     public function store(Request $request)
     {
-        $request->validate([
-            'code' => 'required',
-            'name' => 'required',
-            'type' => 'required',
-
-        ]);
-
         try {
+            if (empty($request->keterangan)) {
+                $request->validate([
+                    'code' => 'required',
+                    'name' => 'required',
+                    'type' => 'required',
+
+                ]);
+            } else {
+                $request->validate([
+                    'code' => 'required',
+                    'name' => 'required',
+                    'type' => 'required',
+                    'keterangan' => 'required|array',
+                    'keterangan.*' => 'required|string',
+                    'value' => 'required|array',
+                    'value.*' => 'required|numeric',
+                ]);
+            }
+
             // Ambil semua kriteria yang ada dari database
             $allKriteria = Kriteria::all();
 
@@ -76,11 +88,16 @@ class KriteriaController extends Controller
                 }
             }
 
-            SubKriteria::create([
-                'kriterias_id' => $kriterias->id,
-                'keterangan' => $request->keterangan,
-                'value' => $request->value,
-            ]);
+            // Simpan sub-kriteria
+            if ($request->keterangan) {
+                foreach ($request->keterangan as $index => $keterangan) {
+                    SubKriteria::create([
+                        'kriterias_id' => $kriterias->id,
+                        'keterangan' => $keterangan,
+                        'value' => $request->value[$index],
+                    ]);
+                }
+            }
 
             return to_route('admin.kriteria.index')->with('success', 'Berhasil ditambah');
         } catch (\Throwable $th) {
@@ -91,16 +108,49 @@ class KriteriaController extends Controller
 
     public function update(Request $request)
     {
-        $request->validate([
-            'id' => 'required',
-            'code' => 'required',
-            'name' => 'required',
-            'type' => 'required',
-            'value' => 'required',
-        ]);
         try {
-            Kriteria::where('id', $request->id)->update($request->except('_token'));
-            return back()->with('success', 'Berhasil diupdate');
+            if (empty($request->keterangan)) {
+                $request->validate([
+                    'code' => 'required',
+                    'name' => 'required',
+                    'type' => 'required',
+
+                ]);
+            } else {
+                $request->validate([
+                    'code' => 'required',
+                    'name' => 'required',
+                    'type' => 'required',
+                    'keterangan' => 'required|array',
+                    'keterangan.*' => 'required|string',
+                    'value' => 'required|array',
+                    'value.*' => 'required|numeric',
+                ]);
+            }
+
+            $id = $request->id;
+
+            // Perbarui kriteria
+            $kriteria = Kriteria::findOrFail($id);
+            $kriteria->update([
+                'code' => $request->code,
+                'name' => $request->name,
+                'type' => $request->type,
+            ]);
+
+            // Hapus sub-kriteria yang ada
+            SubKriteria::where('kriterias_id', $id)->delete();
+
+            // Simpan sub-kriteria baru
+            foreach ($request->keterangan as $index => $keterangan) {
+                SubKriteria::create([
+                    'kriterias_id' => $id,
+                    'keterangan' => $keterangan,
+                    'value' => $request->value[$index],
+                ]);
+            }
+
+            return to_route('admin.kriteria.index')->with('success', 'Berhasil diupdate');
         } catch (\Throwable $th) {
             return back()->with('error', 'Oops, Something was wrong!');
         }

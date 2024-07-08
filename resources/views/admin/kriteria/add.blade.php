@@ -22,8 +22,8 @@
                     <div class="card-header">
                         <h4 class="card-title">Tambah Kriteria</h4>
                     </div>
-                    <div class="card-body">
-                        <form action="{{ route('admin.kriteria.store') }}" method="post">
+                    <form action="{{ route('admin.kriteria.store') }}" method="post">
+                        <div class="card-body">
                             <div class="basic-form">
                                 @csrf
                                 <div class="form-row">
@@ -38,13 +38,7 @@
                                         <input name="name" type="text" class="form-control" placeholder="kriteria">
                                     </div>
                                 </div>
-                                {{-- <div class="form-row">
-                                <div class="form-group col">
-                                    <label>Bobot</label>
-                                    <input name="value" type="number" class="form-control"
-                                        placeholder="1" min="1">
-                                </div>
-                            </div> --}}
+
                                 <div class="">
                                     <label>Jenis</label>
                                     <div class="form-group col p-0">
@@ -54,24 +48,71 @@
                                             <input type="radio" name="type" value="Cost"> Cost</label>
                                     </div>
                                 </div>
-                                <div class="form-row">
-                                    <div class="form-group col">
-                                        <label for="">Sub Kriteria Baru</label>
-                                        <input type="text" class="form-control" name="keterangan">
-                                    </div>
+
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 text-right">
+                                    <button type="button" class="btn btn-success mb-3" id="add-sub-kriteria">
+                                        <i class="bx bx-plus"></i> Tambah Sub Kriteria
+                                    </button>
+
                                 </div>
-                                <div class="form-row">
-                                    <div class="form-group col">
-                                        <label for="">Bobot Sub Kriteria</label>
-                                        <input type="number" class="form-control" name="value">
-                                    </div>
+                                <div class="" id="sub-kriteria-form">
+
                                 </div>
-                                <button type="submit" class="btn btn-primary">Tambah</button>
-                        </form>
-                    </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Tambah</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
     </div>
+
+    @push('script')
+    <script>
+        $(document).ready(function() {
+            let count = 0;
+
+            function updateLabels() {
+                $('.sub-kriteria-group').each(function(index) {
+                    $(this).find('.keterangan-label').text('Keterangan ' + (index + 1));
+                    $(this).attr('id', 'sub-kriteria-group-' + (index + 1));
+                    $(this).find('.remove-sub-kriteria').attr('data-id', (index + 1));
+                });
+            }
+
+            $('#add-sub-kriteria').click(function() {
+                count++;
+                $('#sub-kriteria-form').append(`
+                    <div class="sub-kriteria-group" id="sub-kriteria-group-` + count + `">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="" class="keterangan-label">Keterangan ` + count + `</label>
+                                <input type="text" class="form-control" name="keterangan[]">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="">Bobot ` + count + `</label>
+                                <input type="number" class="form-control" name="value[]">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-danger mb-3 remove-sub-kriteria" data-id="` + count + `">Hapus</button>
+                    </div>
+                `);
+            });
+
+            $(document).on('click', '.remove-sub-kriteria', function() {
+                $(this).closest('.sub-kriteria-group').remove();
+                updateLabels();
+                if ($('.sub-kriteria-group').length === 0) {
+                    count = 0;
+                }
+            });
+        });
+    </script>
+
+
+    @endpush
 @endsection
