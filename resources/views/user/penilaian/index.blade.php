@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal tambah -->
     <div class="modal fade" id="exampleModalCenter">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -66,7 +66,8 @@
                             <label for="">Pilih lokasi</label>
                             <select class="form-control" id="input-topik">
                                 @foreach ($alternatifs as $item)
-                                    <option value="{{ $item->code }}" attrBobot="{{ $item->value }}">
+                                    <option value="{{ $item->code }}" attrBobot="{{ $item->value }}"
+                                        attrType="{{ $item->type }}">
                                         {{ $item->alternatif }}</option>
                                 @endforeach
                             </select>
@@ -77,11 +78,13 @@
                                 <label class="col-sm-5 col-form-label">{{ $item->name }}</label>
                                 <div class="col-sm-7">
                                     @if ($item->sub_kriteria->isEmpty())
-                                        <input type="number" class="form-control" id="sub-kriteria-{{ $item->id }}">
+                                        <input type="number" class="form-control" id="sub-kriteria-{{ $item->id }}"
+                                            attrBobot="{{ $item->value }}" attrType="{{ $item->type }}">
                                     @else
-                                        <select class="form-control" id="sub-kriteria-{{ $item->id }}">
+                                        <select class="form-control" id="sub-kriteria-{{ $item->id }}"
+                                            attrBobot="{{ $item->value }}" attrType="{{ $item->type }}">
                                             @foreach ($item->sub_kriteria as $sub)
-                                                <option value="{{ $sub->id }}" attrBobot="{{ $sub->value }}">
+                                                <option value="{{ $sub->id }}">
                                                     {{ $sub->keterangan }}</option>
                                             @endforeach
                                         </select>
@@ -94,60 +97,14 @@
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         <button type="button" id="tambah-penilaian" data-dismiss="modal"
                             class="btn btn-primary">Tambah</button>
+                        <button type="button" id="simpan-edit-penilaian" data-dismiss="modal"
+                            class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal Edit -->
-    <div class="modal fade" id="editModalCenter">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Penilaian</h5>
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span>
-                    </button>
-                </div>
-                <form id="edit-penilaian-form">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="edit-input-topik">Pilih lokasi</label>
-                            <select class="form-control" id="edit-input-topik">
-                                @foreach ($alternatifs as $item)
-                                    <option value="{{ $item->code }}" attrBobot="{{ $item->value }}">
-                                        {{ $item->alternatif }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        @foreach ($kriterias as $item)
-                            <div class="form-group row">
-                                <label class="col-sm-5 col-form-label">{{ $item->name }}</label>
-                                <div class="col-sm-7">
-                                    @if ($item->sub_kriteria->isEmpty())
-                                        <input type="number" class="form-control"
-                                            id="edit-sub-kriteria-{{ $item->id }}">
-                                    @else
-                                        <select class="form-control" id="edit-sub-kriteria-{{ $item->id }}">
-                                            @foreach ($item->sub_kriteria as $sub)
-                                                <option value="{{ $sub->id }}" attrBobot="{{ $sub->value }}">
-                                                    {{ $sub->keterangan }}</option>
-                                            @endforeach
-                                        </select>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" id="simpan-edit" class="btn btn-primary">Simpan Perubahan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     @push('script')
         <script>
@@ -156,17 +113,15 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+
             var addBtn = document.getElementById('tambah-penilaian');
             var saveBtn = document.getElementById('simpan');
+            var saveEditBtn = document.getElementById('simpan-edit-penilaian');
             var table = document.getElementById('data-penilaian');
             var inputTopik = document.getElementById('input-topik');
+            var form = document.getElementById('penilaian-form');
             const kriteriaIds = @json($kriterias->pluck('id'));
-
-            var tableBody = '';
-            const data = [];
-            const values = [];
-            const kriteriaValues = [];
-            const formData = new FormData();
+            console.log('Kriteria IDs:', kriteriaIds);
 
             const getSelectedText = (el) => {
                 if (el.selectedIndex === -1) {
@@ -175,26 +130,78 @@
                 return el.options[el.selectedIndex].text;
             }
 
+            const renderTable = (data) => {
+                let tableBody = '';
+                data.forEach((penilaian, index) => {
+                    tableBody += '<tr>';
+                    tableBody += `
+                        <td>${penilaian.code}</td>
+                        <td>${penilaian.lokasi}</td>
+                    `;
+                    penilaian.kriteria.forEach(kriteriaValue => {
+                        tableBody += `<td>${kriteriaValue}</td>`;
+                    });
+                    tableBody += `
+                        <td>
+                            <button class="btn btn-warning" onclick="editRow(${index})">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteRow(${index})">Delete</button>
+                        </td>
+                    `;
+                    tableBody += '</tr>';
+                });
+                table.innerHTML = tableBody;
+            }
+
+            const deleteRow = (index) => {
+                let data = JSON.parse(localStorage.getItem('penilaianData')) || [];
+                data.splice(index, 1);
+                localStorage.setItem('penilaianData', JSON.stringify(data));
+                renderTable(data);
+            }
+
+            const editRow = (index) => {
+                let data = JSON.parse(localStorage.getItem('penilaianData')) || [];
+                let penilaian = data[index];
+
+                editIndex = index;
+                inputTopik.value = penilaian.code;
+
+                kriteriaIds.forEach((kriteriaId, i) => {
+                    let elem = document.getElementById('sub-kriteria-' + kriteriaId);
+                    if (elem.tagName.toLowerCase() === 'input') {
+                        elem.value = penilaian.value[i];
+                    } else if (elem.tagName.toLowerCase() === 'select') {
+                        elem.value = penilaian.value[i];
+                    }
+                });
+
+                $('#exampleModalCenter').modal('show');
+                addBtn.style.display = 'none';
+                saveEditBtn.style.display = 'block';
+            }
+
             addBtn.addEventListener('click', () => {
                 let values = [];
                 let kriteriaValues = [];
-
-                tableBody += '<tr>';
-                tableBody += `
-                    <td>${inputTopik.value}</td>
-                    <td>${getSelectedText(inputTopik)}</td>
-                `;
+                let bobotKriteria = [];
+                let typeKriteria = [];
+                let kriteriaID = [];
 
                 let penilaian = {
                     code: inputTopik.value,
                     lokasi: getSelectedText(inputTopik),
                     value: values,
-                    kriteria: kriteriaValues
+                    bobot: bobotKriteria,
+                    type: typeKriteria,
+                    kriteria: kriteriaValues,
+                    kriteriaID: kriteriaIds
                 };
 
                 kriteriaIds.forEach(kriteriaId => {
                     let elem = document.getElementById('sub-kriteria-' + kriteriaId);
                     let kriteriaValue;
+                    let bobot = elem.getAttribute('attrBobot');
+                    let type = elem.getAttribute('attrType');
 
                     if (elem.tagName === 'SELECT') {
                         kriteriaValue = getSelectedText(elem);
@@ -203,95 +210,68 @@
                     }
 
                     values.push(elem.value);
+                    bobotKriteria.push(bobot);
+                    typeKriteria.push(type);
                     kriteriaValues.push(kriteriaValue);
-
-                    tableBody += `<td>${kriteriaValue}</td>`;
                 });
 
-                tableBody += `<td>
-                                <button class="btn btn-primary edit-btn">Edit</button>
-                                <button class="btn btn-danger delete-btn">Hapus</button>
-                              </td>`;
-
+                let data = JSON.parse(localStorage.getItem('penilaianData')) || [];
                 data.push(penilaian);
+                localStorage.setItem('penilaianData', JSON.stringify(data));
 
-                tableBody += '</tr>';
-                table.innerHTML = tableBody;
+                renderTable(data);
 
-                // Add event listeners for edit and delete buttons
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', handleEdit);
-                });
-
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', handleDelete);
-                });
+                form.reset();
             });
 
-            const handleEdit = (event) => {
-                const row = event.target.closest('tr');
-                const code = row.children[0].textContent;
+            saveEditBtn.addEventListener('click', () => {
+                let values = [];
+                let kriteriaValues = [];
+                let bobotKriteria = [];
+                let typeKriteria = [];
 
-                // Find data corresponding to the row
-                const selectedData = data.find(item => item.code === code);
+                let penilaian = {
+                    code: inputTopik.value,
+                    lokasi: getSelectedText(inputTopik),
+                    value: values,
+                    bobot: bobotKriteria,
+                    type: typeKriteria,
+                    kriteria: kriteriaValues
+                };
 
-                // Fill edit modal with data
-                document.getElementById('edit-input-topik').value = selectedData.code;
                 kriteriaIds.forEach(kriteriaId => {
-                    const elem = document.getElementById('edit-sub-kriteria-' + kriteriaId);
-                    const kriteriaValue = selectedData.kriteria[kriteriaId - 1]; // Adjust index if needed
+                    let elem = document.getElementById('sub-kriteria-' + kriteriaId);
+                    let kriteriaValue;
+                    let bobot = elem.getAttribute('data-bobot');
+                    let type = elem.getAttribute('data-type');
+
                     if (elem.tagName === 'SELECT') {
-                        elem.value = kriteriaValue;
+                        kriteriaValue = getSelectedText(elem);
                     } else {
-                        elem.value = kriteriaValue;
+                        kriteriaValue = elem.value;
                     }
+
+                    values.push(elem.value);
+                    bobotKriteria.push(bobot);
+                    typeKriteria.push(type);
+                    kriteriaValues.push(kriteriaValue);
                 });
 
-                // Show the edit modal
-                $('#editModalCenter').modal('show');
-            };
+                let data = JSON.parse(localStorage.getItem('penilaianData')) || [];
+                data[editIndex] = penilaian;
+                localStorage.setItem('penilaianData', JSON.stringify(data));
 
-            const handleDelete = (event) => {
-                const row = event.target.closest('tr');
-                const code = row.children[0].textContent;
+                renderTable(data);
 
-                // Remove from the data array
-                const index = data.findIndex(item => item.code === code);
-                if (index !== -1) {
-                    data.splice(index, 1);
-                }
-
-                // Remove the row from the table
-                row.remove();
-            };
-
-            document.getElementById('simpan-edit').addEventListener('click', () => {
-                // Update the data array with edited values
-                const code = document.getElementById('edit-input-topik').value;
-                const selectedDataIndex = data.findIndex(item => item.code === code);
-
-                if (selectedDataIndex !== -1) {
-                    kriteriaIds.forEach(kriteriaId => {
-                        const elem = document.getElementById('edit-sub-kriteria-' + kriteriaId);
-                        const kriteriaValue = elem.value;
-                        data[selectedDataIndex].kriteria[kriteriaId - 1] = kriteriaValue; // Adjust index if needed
-                    });
-
-                    // Update the table row with new values
-                    const row = table.querySelector(`tr td:first-child:nth-child(${selectedDataIndex + 1})`);
-                    kriteriaIds.forEach(kriteriaId => {
-                        const elem = document.getElementById('edit-sub-kriteria-' + kriteriaId);
-                        const kriteriaValue = elem.value;
-                        row.nextElementSibling.children[kriteriaId].textContent = kriteriaValue;
-                    });
-
-                    // Close the modal
-                    $('#editModalCenter').modal('hide');
-                }
+                form.reset();
+                editIndex = null;
+                addBtn.style.display = 'block';
+                saveEditBtn.style.display = 'none';
             });
 
             saveBtn.addEventListener('click', () => {
-                console.log(data)
+                let data = JSON.parse(localStorage.getItem('penilaianData')) || [];
+
                 try {
                     $.ajax({
                         url: '{{ route('user.penilaian.store') }}',
@@ -300,6 +280,7 @@
                             data: data
                         },
                         success: function(value) {
+                            localStorage.removeItem('penilaianData');
                             Swal.fire({
                                 title: 'Berhasil',
                                 text: 'Data berhasil disimpan dan dihitung',
@@ -307,7 +288,8 @@
                                 confirmButtonText: 'Ok'
                             }).then((result) => {
                                 if (result.isConfirmed) {
-                                    window.location.href = `/dashboard/admin/penilaian/history/${value}`
+                                    window.location.href =
+                                        `/dashboard/user/penilaian/history/${value}`
                                 }
                             })
                         }
@@ -315,6 +297,11 @@
                 } catch (error) {
                     console.error('Error:', error);
                 }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                let data = JSON.parse(localStorage.getItem('penilaianData')) || [];
+                renderTable(data);
             });
         </script>
     @endpush

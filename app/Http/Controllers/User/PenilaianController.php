@@ -50,29 +50,51 @@ class PenilaianController extends Controller
         ];
         // bobot
         $i = 0;
-        foreach ($kriterias as $kriteria) {
-            array_push($bobot, $kriteria->value);
-            if ($kriteria->type == "Benefit") {
-                array_push($types["benefits"], $i);
-            } else {
-                array_push($types["costs"], $i);
+
+        foreach ($penilaian as $item) {
+            foreach ($item->kri_penilaians as $index => $kri) {
+                $bobot = array_unique(array_merge($bobot, [$kri->bobot]));
+
+                // if($kri['type'] == 'Benefit'){
+                //     $types['benefits'] = array_unique(array_merge($types['benefits'], [$i]));
+                // } else if($kri['type'] == 'Cost'){
+                //     $types['costs'] = array_unique(array_merge($types['costs'], [$i]));
+                // }
+
+                if ($kri['type'] == 'Benefit') {
+                    $types['benefits'] = array_unique(array_merge($types['benefits'], [$index]));
+                } else if ($kri['type'] == 'Cost') {
+                    $types['costs'] = array_unique(array_merge($types['costs'], [$index]));
+                }
             }
             $i++;
         }
+
+        // dd($types);
+
+        // foreach ($kriterias as $kriteria) {
+        //     array_push($bobot, $kriteria->value);
+        //     if ($kriteria->type == "Benefit") {
+        //         array_push($types["benefits"], $i);
+        //     } else {
+        //         array_push($types["costs"], $i);
+        //     }
+        //     $i++;
+        // }
 
 
         $matrix = [];
         foreach ($penilaian as $p) {
             $temp = [];
             foreach ($p->kri_penilaians as $kri) {
-                array_push($temp, $kri->bobot);
+                array_push($temp, $kri->value);
             }
             array_push($matrix, $temp);
         }
 
-        $bobotBaru = $this->pembobotan($bobot);
+        // $bobotBaru = $this->pembobotan($bobot);
         $matrix_normalisasi = $this->normalisasi($matrix);
-        $matrix_normalisasi_w = $this->normalisasi_w($matrix_normalisasi, $bobotBaru);
+        $matrix_normalisasi_w = $this->normalisasi_w($matrix_normalisasi, $bobot);
         $minmax = $this->minmax($matrix_normalisasi_w, $types);
 
         $x = 0;
@@ -104,20 +126,21 @@ class PenilaianController extends Controller
     }
 
     // ROC
-    private function pembobotan($bobot)
-    {
-        $sumKriteria = count($bobot);
-        $hasil = [];
-        for ($baris = 0; $baris < $sumKriteria; $baris++) {
-            $temp = [];
-            for ($kolom = $baris; $kolom < $sumKriteria; $kolom++) {
-                $bobotBaru = 1 / ($kolom + 1);
-                array_push($temp, $bobotBaru);
-            }
-            array_push($hasil, array_sum($temp) / $sumKriteria);
-        }
-        return $hasil;
-    }
+    // private function pembobotan($bobot)
+    // {
+    //     $sumKriteria = count($bobot);
+    //     // dd($sumKriteria);
+    //     $hasil = [];
+    //     for ($baris = 0; $baris < $sumKriteria; $baris++) {
+    //         $temp = [];
+    //         for ($kolom = $baris; $kolom < $sumKriteria; $kolom++) {
+    //             $bobotBaru = 1 / ($kolom + 1);
+    //             array_push($temp, $bobotBaru);
+    //         }
+    //         array_push($hasil, array_sum($temp) / $sumKriteria);
+    //     }
+    //     return $hasil;
+    // }
 
 
     public function store(Request $request)
@@ -128,7 +151,6 @@ class PenilaianController extends Controller
             ]);
 
             $data = $request->data;
-
 
             $penilaian = Penilaian::create([
                 'user_id' => Auth::user()->id,
@@ -145,11 +167,16 @@ class PenilaianController extends Controller
             }
 
             foreach ($data as $kri) {
-                foreach ($kri["value"] as $value) {
-                    KriPenilaian::create([
-                        'sub_penilaian_id' => $subPenilaianMap[$kri["lokasi"]],
-                        'bobot' => $value
-                    ]);
+                $subPenilaianId = $subPenilaianMap[$kri["lokasi"]];
+                foreach ($kri["value"] as $index => $value) {
+                    if (!empty($value)) {
+                        KriPenilaian::create([
+                            'sub_penilaian_id' => $subPenilaianId,
+                            'value' => $value,
+                            'bobot' => $kri["bobot"][$index] ?? 0,
+                            'type' => $kri["type"][$index] ?? '',
+                        ]);
+                    }
                 }
             }
 
@@ -161,20 +188,54 @@ class PenilaianController extends Controller
 
     private function minmax($matrix, $type)
     {
+        $benefits = $type['benefits'];
+        $costs = $type['costs'];
+        $numRows = count($matrix);
+        $numCols = count($matrix[0]);
+
+        $maxValues = [];
+        $minValues = [];
         $result = [];
-        for ($i = 0; $i < count($matrix); $i++) {
-            $max = 0;
-            foreach ($type["benefits"] as $value) {
-                $max += $matrix[$i][$value];
-            }
 
-            $min = 0;
-            foreach ($type["costs"] as $value) {
-                $min += $matrix[$i][$value];
+        // Hitung nilai maksimum
+        for ($i = 0; $i < $numRows; $i++) {
+            $maxSum = 0;
+            foreach ($benefits as $benefit) {
+                $maxSum += $matrix[$i][$benefit];
             }
-            array_push($result, abs($max - $min));
-
+            $maxValues[] = $maxSum;
         }
+
+        // Hitung nilai minimum
+        for ($i = 0; $i < $numRows; $i++) {
+            $minSum = 0;
+            foreach ($costs as $cost) {
+                $minSum += $matrix[$i][$cost];
+            }
+            $minValues[] = $minSum;
+        }
+
+        // Hitung nilai result
+        for ($i = 0; $i < $numRows; $i++) {
+            $result[] = $maxValues[$i] - $minValues[$i];
+        }
+
+
+        // for ($i = 0; $i < $length; $i++) {
+        //     $max = 0;
+        //     foreach ($type["benefits"] as $value) {
+        //         print_r($value);
+        //         die;
+        //         $max += $matrix[$i][$value];
+        //     }
+
+        //     $min = 0;
+        //     foreach ($type["costs"] as $value) {
+        //         $min += $matrix[$i][$value];
+        //     }
+        //     array_push($result, abs($max - $min));
+        // }
+        // dd($result);
         return $result;
     }
 
@@ -207,9 +268,9 @@ class PenilaianController extends Controller
         $jumlah_baris = count($matrix);
         $jumlah_kolom = count($matrix[0]);
         $matrix_normalisasi_w = [];
-        for ($iw=0; $iw < $jumlah_baris; $iw++) {
+        for ($iw = 0; $iw < $jumlah_baris; $iw++) {
             $temp_norm_w = [];
-            for ($jw=0; $jw < $jumlah_kolom; $jw++) {
+            for ($jw = 0; $jw < $jumlah_kolom; $jw++) {
                 $v = $matrix[$iw][$jw] * $bobot[$jw];
                 array_push($temp_norm_w, $v);
             }
@@ -232,6 +293,7 @@ class PenilaianController extends Controller
     {
         $penilaian = SubPenilaian::with('kri_penilaians')->where('penilaian_id', $id)->get();
         $kriterias = Kriteria::select('value', 'type')->get();
+
         $bobot = [];
         $types = [
             "benefits" => [],
@@ -239,31 +301,58 @@ class PenilaianController extends Controller
         ];
         // bobot
         $i = 0;
-        foreach ($kriterias as $kriteria) {
-            array_push($bobot, $kriteria->value);
-            if ($kriteria->type == "Benefit") {
-                array_push($types["benefits"], $i);
-            } else {
-                array_push($types["costs"], $i);
+
+        foreach ($penilaian as $item) {
+            foreach ($item->kri_penilaians as $index => $kri) {
+                $bobot = array_unique(array_merge($bobot, [$kri->bobot]));
+
+                // if($kri['type'] == 'Benefit'){
+                //     $types['benefits'] = array_unique(array_merge($types['benefits'], [$i]));
+                // } else if($kri['type'] == 'Cost'){
+                //     $types['costs'] = array_unique(array_merge($types['costs'], [$i]));
+                // }
+
+                if ($kri['type'] == 'Benefit') {
+                    $types['benefits'] = array_unique(array_merge($types['benefits'], [$index]));
+                } else if ($kri['type'] == 'Cost') {
+                    $types['costs'] = array_unique(array_merge($types['costs'], [$index]));
+                }
             }
             $i++;
         }
+
+        // dd($types);
+
+        // foreach ($kriterias as $kriteria) {
+        //     array_push($bobot, $kriteria->value);
+        //     if ($kriteria->type == "Benefit") {
+        //         array_push($types["benefits"], $i);
+        //     } else {
+        //         array_push($types["costs"], $i);
+        //     }
+        //     $i++;
+        // }
+
 
         $matrix = [];
         foreach ($penilaian as $p) {
             $temp = [];
             foreach ($p->kri_penilaians as $kri) {
-                array_push($temp, $kri->bobot);
+                array_push($temp, $kri->value);
             }
             array_push($matrix, $temp);
         }
-        $bobotBaru = $this->pembobotan($bobot);
+
+        // $bobotBaru = $this->pembobotan($bobot);
         $matrix_normalisasi = $this->normalisasi($matrix);
-        $matrix_normalisasi_w = $this->normalisasi_w($matrix_normalisasi, $bobotBaru);
+        $matrix_normalisasi_w = $this->normalisasi_w($matrix_normalisasi, $bobot);
         $minmax = $this->minmax($matrix_normalisasi_w, $types);
 
         $x = 0;
         foreach ($penilaian as $p) {
+            array_unshift($matrix[$x], $p->alternatif);
+            array_unshift($matrix_normalisasi[$x], $p->alternatif);
+            array_unshift($matrix_normalisasi_w[$x], $p->alternatif);
             $minmax[$x] = [$p->alternatif, $minmax[$x]];
             $x++;
         }

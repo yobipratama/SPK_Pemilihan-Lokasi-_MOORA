@@ -18,6 +18,8 @@
     <link href="{{ asset('/vendor/datatables/css/jquery.dataTables.min.css') }}" rel="stylesheet">
     <!-- Toastr -->
     <link rel="stylesheet" href="{{ asset('/vendor/toastr/css/toastr.min.css')}}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 
 <body>
