@@ -7,6 +7,7 @@ use App\Models\Kriteria;
 use App\Models\SubKriteria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class KriteriaController extends Controller
 {
@@ -25,9 +26,43 @@ class KriteriaController extends Controller
             $kriteria = Kriteria::with('sub_kriteria')->findOrFail($id);
             return view('admin.kriteria.edit', ['kriteria' => $kriteria]);
         } catch (\Throwable $th) {
-            return back()->with('error', 'Oops, Something was wrong!');
+            // return back()->with('error', 'Oops, Something was wrong!');
         }
     }
+
+    private function hitungBobot($totalKriteria)
+    {
+        $bobotBaru = [];
+
+        for ($i = 0; $i < $totalKriteria; $i++) {
+            $bobot = 0;
+            for ($j = $i + 1; $j <= $totalKriteria; $j++) {
+                $bobot += 1 / $j;
+            }
+            $bobotBaru[] = $bobot / $totalKriteria;
+        }
+
+        return $bobotBaru;
+    }
+
+    public function detail()
+    {
+        try {
+            $kriteria = Kriteria::with('sub_kriteria')->get();
+
+            $pembobotan = $kriteria->map(function($item, $index) {
+                return [
+                    'keterangan' => 'W' . ($index + 1),
+                    'bobot' => $item->value
+                ];
+            });
+
+            return view('admin.kriteria.detail_roc', ['kriteria' => $kriteria, 'pembobotan' => $pembobotan]);
+        } catch (\Throwable $th) {
+            // return back()->with('error', 'Oops, Something was wrong!');
+        }
+    }
+
     public function store(Request $request)
     {
         try {
@@ -36,6 +71,7 @@ class KriteriaController extends Controller
                     'code' => 'required',
                     'name' => 'required',
                     'type' => 'required',
+                    'priority' => 'required',
 
                 ]);
             } else {
@@ -58,26 +94,20 @@ class KriteriaController extends Controller
                 'code' => $request->code,
                 'name' => $request->name,
                 'type' => $request->type,
+                'priority' => $request->priority,
             ];
 
 
             // Hitung ulang bobot untuk setiap kriteria termasuk yang baru
             $totalKriteria = $allKriteria->count() + 1;
-            $bobotBaru = [];
-
-            for ($i = 0; $i < $totalKriteria; $i++) {
-                $bobot = 0;
-                for ($j = $i + 1; $j <= $totalKriteria; $j++) {
-                    $bobot += 1 / $j;
-                }
-                $bobotBaru[] = $bobot / $totalKriteria;
-            }
+            $bobotBaru = $this->hitungBobot($totalKriteria);
 
             // Simpan kriteria baru dengan bobot yang telah dihitung
             $kriterias = Kriteria::create([
                 'code' => $request->code,
                 'name' => $request->name,
                 'type' => $request->type,
+                'priority' => $request->priority,
                 'value' => number_format($bobotBaru[$totalKriteria - 1], 10, '.', ''),
             ]);
 
@@ -101,7 +131,6 @@ class KriteriaController extends Controller
 
             return to_route('admin.kriteria.index')->with('success', 'Berhasil ditambah');
         } catch (\Throwable $th) {
-            dd($th);
             // return back()->with('error', 'Oops, Something was wrong!');
         }
     }
@@ -114,6 +143,7 @@ class KriteriaController extends Controller
                     'code' => 'required',
                     'name' => 'required',
                     'type' => 'required',
+                    'priority' => 'required',
 
                 ]);
             } else {
@@ -121,6 +151,7 @@ class KriteriaController extends Controller
                     'code' => 'required',
                     'name' => 'required',
                     'type' => 'required',
+                    'priority' => 'required',
                     'keterangan' => 'required|array',
                     'keterangan.*' => 'required|string',
                     'value' => 'required|array',
@@ -136,6 +167,7 @@ class KriteriaController extends Controller
                 'code' => $request->code,
                 'name' => $request->name,
                 'type' => $request->type,
+                'priority' => $request->priority,
             ]);
 
             // Hapus sub-kriteria yang ada
@@ -152,7 +184,7 @@ class KriteriaController extends Controller
 
             return to_route('admin.kriteria.index')->with('success', 'Berhasil diupdate');
         } catch (\Throwable $th) {
-            return back()->with('error', 'Oops, Something was wrong!');
+            // return back()->with('error', 'Oops, Something was wrong!');
         }
     }
 
@@ -167,8 +199,7 @@ class KriteriaController extends Controller
             SubKriteria::create($request->all());
             return back()->with('success', 'Berhasil menambah sub kriteria');
         } catch (\Throwable $th) {
-            dd($th);
-            return back()->with('error', 'Oops, Something was wrong!');
+            // return back()->with('error', 'Oops, Something was wrong!');
         }
     }
 
@@ -183,16 +214,7 @@ class KriteriaController extends Controller
             // Ambil semua kriteria yang tersisa dari database
             $allKriteria = Kriteria::all();
             $totalKriteria = $allKriteria->count();
-            $bobotBaru = [];
-
-            // Hitung ulang bobot untuk setiap kriteria yang tersisa
-            for ($i = 0; $i < $totalKriteria; $i++) {
-                $bobot = 0;
-                for ($j = $i; $j < $totalKriteria; $j++) {
-                    $bobot += 1 / ($j + 1);
-                }
-                $bobotBaru[] = $bobot / $totalKriteria;
-            }
+            $bobotBaru = $this->hitungBobot($totalKriteria);
 
             // Perbarui bobot semua kriteria yang tersisa di database
             foreach ($allKriteria as $index => $kriteria) {
@@ -200,8 +222,7 @@ class KriteriaController extends Controller
             }
             return to_route('admin.kriteria.index')->with('success', 'Berhasil dihapus');
         } catch (\Throwable $th) {
-            dd($th);
-            return back()->with('error', 'Oops, Something was wrongs!');
+            // return back()->with('error', 'Oops, Something was wrongs!');
         }
     }
 }

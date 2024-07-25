@@ -2,19 +2,13 @@
 
 use App\Http\Controllers\User\AlternatifController;
 use App\Http\Controllers\Admin\KriteriaController;
-use App\Http\Controllers\Admin\MahasiswaController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\PenilaianController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Mahasiswa\AlternatifController as MahasiswaAlternatifController;
-use App\Http\Controllers\Mahasiswa\KriteriaController as MahasiswaKriteriaController;
-use App\Http\Controllers\Mahasiswa\ProfileController as MahasiswaProfileController;
 use App\Models\Alternatif;
 use App\Models\Kriteria;
 use App\Models\Penilaian;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -77,6 +71,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             Route::post('/update', [KriteriaController::class, 'update'])->name('admin.kriteria.update');
             Route::get('/{id}', [KriteriaController::class, 'destroy'])->name('admin.kriteria.destroy');
         });
+        Route::get('/detail-kriteria', [KriteriaController::class, 'detail'])->name('admin.kriteria.detail');
 
     });
 });

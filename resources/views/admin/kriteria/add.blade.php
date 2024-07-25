@@ -48,6 +48,12 @@
                                             <input type="radio" name="type" value="Cost"> Cost</label>
                                     </div>
                                 </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label>Priority</label>
+                                        <input name="priority" type="number" class="form-control" placeholder="example: 1">
+                                    </div>
+                                </div>
 
                             </div>
                             <div class="card-body">

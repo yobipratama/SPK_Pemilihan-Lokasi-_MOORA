@@ -97,7 +97,7 @@
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         <button type="button" id="tambah-penilaian" data-dismiss="modal"
                             class="btn btn-primary">Tambah</button>
-                        <button type="button" id="simpan-edit-penilaian" data-dismiss="modal"
+                        <button type="button" id="simpan-edit-penilaian" style="display: none;" data-dismiss="modal"
                             class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
@@ -181,6 +181,7 @@
             }
 
             addBtn.addEventListener('click', () => {
+
                 let values = [];
                 let kriteriaValues = [];
                 let bobotKriteria = [];

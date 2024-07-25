@@ -17,22 +17,22 @@ class KriteriaSeeder extends Seeder
     {
         $dataKriteria = [
             [
-                'code' => 'C1', 'name' => 'Harga Lokasi', 'type' => 'Cost', 'value' => 1,
+                'code' => 'C1', 'name' => 'Harga Lokasi', 'type' => 'Cost', 'value' => 1, 'priority' => 1,
             ],
             [
-                'code' => 'C2', 'name' => 'Luas Tanah', 'type' => 'Benefit', 'value' => 1,
+                'code' => 'C2', 'name' => 'Luas Tanah', 'type' => 'Benefit', 'value' => 1, 'priority' => 2,
             ],
             [
-                'code' => 'C3', 'name' => 'Pasar Sasaran', 'type' => 'Benefit', 'value' => 1,
+                'code' => 'C3', 'name' => 'Pasar Sasaran', 'type' => 'Benefit', 'value' => 1, 'priority' => 3,
             ],
             [
-                'code' => 'C4', 'name' => 'Banyak Penduduk/Keramaian', 'type' => 'Benefit', 'value' => 1,
+                'code' => 'C4', 'name' => 'Banyak Penduduk/Keramaian', 'type' => 'Benefit', 'value' => 1, 'priority' => 4,
             ],
             [
-                'code' => 'C5', 'name' => 'Aksesibilitas', 'type' => 'Benefit', 'value' => 1,
+                'code' => 'C5', 'name' => 'Aksesibilitas', 'type' => 'Benefit', 'value' => 1, 'priority' => 5,
             ],
             [
-                'code' => 'C6', 'name' => 'Kompetitor/Jumlah Usaha Pesaing', 'type' => 'Cost', 'value' => 1,
+                'code' => 'C6', 'name' => 'Kompetitor/Jumlah Usaha Pesaing', 'type' => 'Cost', 'value' => 1, 'priority' => 6,
             ],
         ];
 

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('type');
             $table->decimal('value', 10, 9);
+            $table->integer('priority');
             $table->timestamps();
         });
     }
